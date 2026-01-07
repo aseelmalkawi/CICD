@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name : "node-app"
+    ports:
+      - "3000:3000"
+    network_mode : "app"
+    restart: on-failure

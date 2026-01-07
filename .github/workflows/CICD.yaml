@@ -1,0 +1,167 @@
+name: Node ja App
+
+on:
+    push:
+        branches: [ main ]
+    pull_request: 
+        branches: [ main ]
+
+
+jobs:
+
+    prepare: 
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
+
+        - name: Extract Version
+          run : |
+            VERSION=$(jq -r .version package.json)
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            echo "version: \"$VERSION\"" > version.yaml
+            ls -l
+
+        - name:  Debuugung the extracted Version
+          run: echo $VERSION
+
+        - name: Upload Version artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: version
+            path: version.yaml
+
+    config_aws:
+      runs-on: ubuntu-latest
+      steps:
+        - name : Config AWS credintails
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ secrets.AWS_REGION }}   
+            
+        - name: Login into AWS ecr
+          uses: aws-actions/amazon-ecr-login@v2
+    build:
+      runs-on: ubuntu-latest
+      needs: prepare
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
+
+        - name: Download artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: version
+
+        - name: Load version into enviroment
+          run: |
+            VERSION=$(grep 'version' version.yaml | cut -d'"' -f2)
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+        - name: Setup Nodejs
+          uses: actions/setup-node@v4
+          with:
+            node-version: "20"
+            cache: 'npm'
+
+        - name: Install dep
+          run: npm i
+
+        - name: Package app artifact
+          run: |
+            ARTIFACT_NAME="nodeapp-${VERSION}-${GITHUB_SHA:0:7}.tgz"
+            mkdir -p artifacts
+            mkdir -p artifact-temp
+            shopt -s extglob
+            cp -r !(artifact-temp|artifacts|.git|.github) artifact-temp/
+            tar -czf "artifacts/$ARTIFACT_NAME" -C artifact-temp .
+            rm -rf artifact-temp
+            ls -R artifacts
+
+        - name: Upload build artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: app-build
+            path: artifacts/
+    docker:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v4
+
+            - name: Download artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: version
+
+            - name: Load version into enviroment
+              run: |
+               VERSION=$(grep 'version' version.yaml | cut -d'"' -f2)
+               echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+            - name: Debuugung the extracted Version
+              run: echo $VERSION
+
+            - name: Download artifact 
+              uses: actions/download-artifact@v4
+              with:
+                name: app-build
+
+            
+            - name: Extract app artifact
+              run: |
+                mkdir -p app
+                ARTIFACT=$(ls nodeapp-${VERSION}-*.tgz | tail -n -1)
+                echo $ARTIFACT
+                tar -xzf  "$ARTIFACT" -C app
+              
+
+               
+            - name : Config AWS credintails
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-region: ${{ secrets.AWS_REGION }}   
+                
+            - name: Login into AWS ecr
+              uses: aws-actions/amazon-ecr-login@v2
+
+            - name: Build and push Image 
+              uses: docker/build-push-action@v6 
+              with:
+                context: .
+                file: ./Dockerfile
+                push: true
+                tags: ${{ secrets.AWS_ECR_URL }}/nodeapp:${{ env.VERSION }}
+                
+    deploy:
+      runs-on: ubuntu-latest
+      needs: docker
+      steps:
+
+        - name: Download artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: version
+
+        - name: Load version into enviroment
+          run: |
+            VERSION=$(grep 'version' version.yaml | cut -d'"' -f2)
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+        - name: ssh to the server
+          uses: appleboy/ssh-action@v1.0.3
+          with:
+            host: ${{ secrets.HOST }}
+            username: ${{ secrets.HOST_NAME }}
+            key: ${{ secrets.KEY }}
+            script: |
+              echo "pull image"
+              docker pull ${{ secrets.AWS_ECR_URL }}/nodeapp:${{ env.VERSION }}
+
+              docker stop nodeapp 
+              docker rm nodeapp
+              docker run -dp 81:3000 --name nodeapp ${{ secrets.AWS_ECR_URL }}/nodeapp:${{env.VERSION}}
