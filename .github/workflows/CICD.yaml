@@ -136,7 +136,7 @@ jobs:
                 context: .
                 file: ./Dockerfile
                 push: true
-                tags: ${{ secrets.ECR_URI }}/nodeapp:${{ env.VERSION }}
+                tags: ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
                 
     deploy:
       runs-on: ubuntu-latest
@@ -160,8 +160,8 @@ jobs:
             key: ${{ secrets.KEY }}
             script: |
               echo "pull image"
-              docker pull ${{ secrets.AWS_ECR_URL }}/nodeapp:${{ env.VERSION }}
+              docker pull ${{ secrets.AWS_ECR_URL }}/cicd-aseel:${{ env.VERSION }}
 
               docker stop nodeapp 
               docker rm nodeapp
-              docker run -dp 81:3000 --name nodeapp ${{ secrets.AWS_ECR_URL }}/nodeapp:${{env.VERSION}}
+              docker run -dp 81:3000 --name nodeapp ${{ secrets.AWS_ECR_URL }}/cicd-aseel:${{env.VERSION}}
