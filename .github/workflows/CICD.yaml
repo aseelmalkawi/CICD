@@ -1,7 +1,6 @@
 name: Node js App
 
 on:
-    workflow_dispatch:
     push:
         branches: [ main ]
     pull_request: 
@@ -173,4 +172,4 @@ jobs:
             script: |
               echo "pull image"
               docker pull ${{ secrets.AWS_ECR_URL }}cicd-aseel:${{ env.VERSION }}
-              docker run -dp 81:3000 --name nodeapp ${{ secrets.AWS_ECR_URL }}cicd-aseel:${{env.VERSION}}
+              docker run -dp 81:3000 --name nodeapp ${{ secrets.AWS_ECR_URL cicd-aseel:${{env.VERSION}}
