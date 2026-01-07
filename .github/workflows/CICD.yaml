@@ -152,6 +152,17 @@ jobs:
           run: |
             VERSION=$(grep 'version' version.yaml | cut -d'"' -f2)
             echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+        - name : Config AWS credintails
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ secrets.AWS_REGION }}   
+            
+        - name: Login into AWS ecr
+          uses: aws-actions/amazon-ecr-login@v2
+
         - name: ssh to the server
           uses: appleboy/ssh-action@v1.0.3
           with:
