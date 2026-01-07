@@ -172,10 +172,10 @@ jobs:
             script: |
               echo "Logging into AWS ECR"
               aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-              | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
+              | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URI }}
 
               echo "Pulling the Docker image"
-              docker pull ${{ secrets.AWS_ECR_URL }}/cicd-aseel:${{ env.VERSION }}
+              docker pull ${{ secrets.AWS_ECR_URI }}/cicd-aseel:${{ env.VERSION }}
 
               echo "Stopping old container if it exists"
               docker stop nodeapp || true
