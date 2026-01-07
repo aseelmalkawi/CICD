@@ -140,7 +140,7 @@ jobs:
                 
     deploy:
       runs-on: ubuntu-latest
-      needs: docker
+      #needs: docker
       steps:
 
         - name: Download artifact
