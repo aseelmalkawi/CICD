@@ -178,4 +178,4 @@ jobs:
               docker pull ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
 
               echo "Running new container"
-              docker run -dp 81:3000 --name nodeapp ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
+              docker run -dp 3000:3000 --name nodeapp ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
