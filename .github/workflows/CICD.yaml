@@ -100,7 +100,7 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                 name: app-build
-            
+
             - name: Extract app artifact
               run: |
                   chmod +x common/extract_artifact.sh
@@ -130,7 +130,6 @@ jobs:
       steps:
         - name: Checkout repo
           uses: actions/checkout@v4
-
         - name: Download artifact
           uses: actions/download-artifact@v4
           with:
@@ -140,13 +139,6 @@ jobs:
           run: |
             chmod +x common/load_version.sh
             ./common/load_version.sh
-
-        - name: Debug script presence
-          run: |
-            ls -la
-            echo "-----"
-            cat common/server_script.sh
-
         
         - name: SSH to the server and deploy Docker image
           uses: appleboy/ssh-action@v1.0.3
@@ -155,9 +147,17 @@ jobs:
             username: ${{ secrets.HOST_NAME }}
             key: ${{ secrets.KEY }}
             script: |
-              chmod +x common/server_script.sh
-              ./common/server_script.sh
-          env:
-            AWS_REGION: ${{ secrets.AWS_REGION }}
-            ECR_URI: ${{ secrets.ECR_URI }}
-            VERSION: ${{ env.VERSION }}
+              echo "Logging into AWS ECR"
+              aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+              | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
+
+              echo "Pulling the Docker image"
+              docker pull ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
+
+              if docker ps -a --format '{{.Names}}' | grep -wq nodeapp; then
+                docker stop nodeapp
+                docker rm nodeapp
+              fi
+
+              echo "Running new container"
+              docker run -dp 3000:3000 --name nodeapp ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
