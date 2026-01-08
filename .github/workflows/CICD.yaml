@@ -149,3 +149,7 @@ jobs:
             username: ${{ secrets.HOST_NAME }}
             key: ${{ secrets.KEY }}
             script_path: server_script.sh
+          env:
+            AWS_REGION: ${{ secrets.AWS_REGION }}
+            ECR_URI: ${{ secrets.ECR_URI }}
+            VERSION: ${{ env.VERSION }}
