@@ -150,7 +150,7 @@ jobs:
             AWS_REGION: ${{ secrets.AWS_REGION }}
             ECR_URI: ${{ secrets.ECR_URI }}
       
-      deploy:
+    deploy:
       runs-on: ubuntu-latest
       needs: promote
       steps:
