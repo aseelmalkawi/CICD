@@ -142,18 +142,19 @@ jobs:
             chmod +x common/load_version.sh
             ./common/load_version.sh
         
-        - name: ssh to the server
+        - name: SSH to the server and deploy Docker image
           uses: appleboy/ssh-action@v1.0.3
           with:
-            host: ${{ secrets.PUPLIC_IP }}
+            host: ${{ secrets.HOST }}
             username: ${{ secrets.HOST_NAME }}
-            key: ${{ secrets.PRIVATE_KEY }}
+            key: ${{ secrets.KEY }}
             script: |
-              echo "ECR Login"
-              aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
+              echo "Logging into AWS ECR"
+              aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+              | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
 
-              echo "pull image"
+              echo "Pulling the Docker image"
               docker pull ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
-              docker stop nodeapp
-              docker rm nodeapp
-              docker run -dp 3000:3000 --name nodeapp ${{ secrets.ECR_URI }}/cicd-aseel:${{env.VERSION}}
+
+              echo "Running new container"
+              docker run -dp 3000:3000 --name nodeapp ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
