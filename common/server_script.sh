@@ -1,9 +1,16 @@
 #!/bin/bash
 
-echo "ECR Login"
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URI }}/cicd-shaymaa:${{ env.VERSION }}
+echo "Logging into AWS ECR"
+aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+| docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
 
-echo "pull image"
-docker pull ${{ secrets.AWS_ECR_URI }}/cicd-shaymaa:${{ env.VERSION }}
+echo "Pulling the Docker image"
+docker pull ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
 
-docker run -dp 3000:3000 --name cicd-shaymaa ${{ secrets.AWS_ECR_URI }}/cicd-shaymaa:${{env.VERSION}}
+if docker ps -a --format '{{.Names}}' | grep -wq nodeapp; then
+docker stop nodeapp
+docker rm nodeapp
+fi
+
+echo "Running new container"
+docker run -dp 3000:3000 --name nodeapp ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.VERSION }}
