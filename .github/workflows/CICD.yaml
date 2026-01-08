@@ -180,7 +180,7 @@ jobs:
               | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
 
               echo "Pulling the Docker image"
-              docker pull ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.BASE_TAG }}
+              docker pull ${{ secrets.ECR_URI }}/cicd-aseel:latest
 
               if docker ps -a --format '{{.Names}}' | grep -wq nodeapp; then
                 docker stop nodeapp
@@ -188,4 +188,4 @@ jobs:
               fi
 
               echo "Running new container"
-              docker run -dp 3000:3000 --name nodeapp ${{ secrets.ECR_URI }}/cicd-aseel:${{ env.BASE_TAG }}
+              docker run -dp 3000:3000 --name nodeapp ${{ secrets.ECR_URI }}/cicd-aseel:latest
