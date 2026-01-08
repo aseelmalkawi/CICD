@@ -17,7 +17,7 @@ jobs:
 
         - name: Extract Version
           run : | 
-              chmod +x version_extract.sh
+              chmod +x common/version_extract.sh
               ./common/version_extract.sh
 
         - name:  Debugging the extracted Version
@@ -55,7 +55,7 @@ jobs:
 
         - name: Load version into enviroment
           run: |
-              chmod +x load_version.sh
+              chmod +x common/load_version.sh
               ./common/load_version.sh
 
         - name: Setup Nodejs
@@ -69,7 +69,7 @@ jobs:
 
         - name: Package app artifact
           run: |
-              chmod +x package_artifact.sh
+              chmod +x common/package_artifact.sh
               ./common/package_artifact.sh
 
         - name: Upload build artifacts
@@ -91,7 +91,7 @@ jobs:
 
             - name: Load version into enviroment
               run: |
-                chmod +x load_version.sh
+                chmod +x common/load_version.sh
                 ./common/load_version.sh
 
             - name: Debugging the extracted Version
@@ -105,7 +105,7 @@ jobs:
             
             - name: Extract app artifact
               run: |
-                  chmod +x extract_artifact.sh
+                  chmod +x common/extract_artifact.sh
                   ./common/extract_artifact.sh
 
             - name : Config AWS credentials
@@ -139,7 +139,7 @@ jobs:
 
         - name: Load version into enviroment
           run: |
-            chmod +x load_version.sh
+            chmod +x common/load_version.sh
             ./common/load_version.sh
         
         - name: ssh to the server
