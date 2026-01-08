@@ -25,6 +25,7 @@ docker pull "$LATEST_ECR_IMAGE"
 BASE_TAG=$(echo "$LATEST_TAG" | cut -d'-' -f1 | tr -d '"')
 echo "export BASE_TAG=$BASE_TAG" >> "$GITHUB_ENV"
 echo "BASE_TAG=$BASE_TAG"
+echo "BASE_TAG=$BASE_TAG" >> "$GITHUB_OUTPUT"
 
 # Step 5: docker tag
 docker tag "$ECR_URI/cicd-aseel:$LATEST_TAG" "$ECR_URI/cicd-aseel:$BASE_TAG"
@@ -34,3 +35,4 @@ aws ecr get-login-password --region "$AWS_REGION" \
   | docker login --username AWS --password-stdin "$ECR_URI"
 
 docker push "$ECR_URI/cicd-aseel:$BASE_TAG"
+
