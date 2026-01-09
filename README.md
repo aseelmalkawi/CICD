@@ -20,12 +20,6 @@ promote
 deploy
 ```
 
-## Trigger Conditions
-
-The pipeline executes on:
-- **Push events** to the `main` branch
-- **Pull requests** targeting the `main` branch
-
 ## Pipeline Jobs
 
 ### 1. Prepare Job
